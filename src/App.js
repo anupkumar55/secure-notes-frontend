@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+
 import Login from "./components/Auth/Login";
 import Signup from "./components/Auth/Signup";
 import AllNotes from "./components/Notes/AllNotes";
@@ -20,7 +21,24 @@ import AboutPage from "./components/aboutPage/AboutPage";
 import ResetPassword from "./components/Auth/ResetPassword";
 import Footer from "./components/Footer/Footer";
 
+import api from "./services/api"; // Axios instance with CSRF config
+
 const App = () => {
+  // ✅ Fetch CSRF token on first app load
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const res = await api.get("/csrf-token");
+        localStorage.setItem("CSRF_TOKEN", res.data.token);
+        console.log("Fetched CSRF token:", res.data.token);
+      } catch (err) {
+        console.error("Failed to fetch CSRF token", err);
+      }
+    };
+
+    fetchCsrfToken();
+  }, []);
+
   return (
     <Router>
       <Navbar />
@@ -58,7 +76,6 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        
         <Route path="/access-denied" element={<AccessDenied />} />
         <Route
           path="/admin/*"
@@ -77,7 +94,6 @@ const App = () => {
           }
         />
         <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
-
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
