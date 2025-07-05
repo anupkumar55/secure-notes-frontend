@@ -14,30 +14,18 @@ const api = axios.create({
 
 // Add a request interceptor to include JWT and CSRF tokens
 api.interceptors.request.use(
-  async (config) => {
+  (config) => {
     const token = localStorage.getItem("JWT_TOKEN");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    let csrfToken = localStorage.getItem("CSRF_TOKEN");
-    if (!csrfToken) {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/csrf-token`,
-          { withCredentials: true }
-        );
-        csrfToken = response.data.token;
-        localStorage.setItem("CSRF_TOKEN", csrfToken);
-      } catch (error) {
-        console.error("Failed to fetch CSRF token", error);
-      }
-    }
-
+    const csrfToken = localStorage.getItem("CSRF_TOKEN");
     if (csrfToken) {
       config.headers["X-XSRF-TOKEN"] = csrfToken;
+      console.log("X-XSRF-TOKEN", csrfToken);
     }
-    console.log("X-XSRF-TOKEN " + csrfToken);
+
     return config;
   },
   (error) => {
@@ -45,4 +33,5 @@ api.interceptors.request.use(
   }
 );
 
+// Export the Axios instance
 export default api;
